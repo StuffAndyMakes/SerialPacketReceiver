@@ -11,7 +11,7 @@
 # Last update: Mar 02, 2015 release 263
 
 ifneq ($(shell grep 1.5 $(ARDUINO_PATH)/lib/version.txt),)
-    WARNING_MESSAGE = 'ARDUINO 1.5.x IS REPLACED BY ARDUINO 1.6.x'
+    WARNING_MESSAGE = 'ARDUINO 1.5.x IS REPLACED BY ARDUINO 1.6.1 OR 1.7.x'
 endif
 
 

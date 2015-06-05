@@ -20,7 +20,7 @@
 // THE SKETCH IS IN SerialPacketReceiver.cpp
 // ----------------------------------
 //
-// Last update: Apr 15, 2015 release 280
+// Last update: May 14, 2015 release 289
 
 // IDE selection
 #if defined(EMBEDXCODE)
@@ -180,8 +180,8 @@ extern "C" {
 }
 
 
-#elif defined(SPARK)
-// ============================================================================= Spark specific
+#elif defined(SPARK) || defined(PARTICLE)
+// ============================================================================= Particle / Spark specific
 
 /**
  ******************************************************************************
@@ -765,7 +765,10 @@ int main(void)
 #include <xdc/runtime/System.h>
 #include <ti/drivers/Power.h>
 /* Board Support Header files (from configuration closure) */
+// Valid for Energia 15
 #include "src/platform/Board.h"
+// Valid for Energia 16
+//#include "Board.h"
 #include <Energia.h>
 
 //#if defined(__TI_COMPILER_VERSION__) || defined(__GNUC__)
@@ -1184,7 +1187,7 @@ int main( void )
  * @version 1.0
  *
  * @section License
- * Copyright (C) 2013-2014, Mikael Patel
+ * Copyright (C) 2013-2015, Mikael Patel
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -1247,6 +1250,16 @@ void init()
     UDIEN = 0;
 #endif
     
+    // Disable low voltage detect
+#if defined(COSA_BOD_DISABLE) && defined(BODS)
+    MCUCR |= _BV(BODS) | _BV(BODSE);
+    MCUCR |= _BV(BODS);
+#endif
+    
+    // Allow the board to set ports in a safe state. Typically chip
+    // select pins to board devices
+    Board::init();
+    
     // Allow interrupts from here on
     sei();
 }
@@ -1255,13 +1268,18 @@ void init()
  * Default setup function. This function may be overridden.
  */
 void setup() __attribute__((weak));
-//void setup() {}
+//void setup()
+//{
+//}
 
 /**
  * Default loop function. This function may be overridden.
  */
 void loop() __attribute__((weak));
-//void loop() {}
+//void loop()
+//{
+//    exit(0);
+//}
 
 /**
  * The main function. This function may be overridden.
@@ -1276,7 +1294,28 @@ int main(void)
 }
 
 /**
- * Default delay function; delay given number of milli-seconds.
+ * The exit function. This function may be overridden.
+ */
+void exit(int status) __attribute__((weak));
+void exit(int status)
+{
+    UNUSED(status);
+    
+    cli();
+    
+#if defined(USBCON)
+    extern void USB_Keepalive(void);
+    // Never returns
+    USB_Keepalive();
+#endif
+    
+    // Hang forever in sleep mode
+    while (1)
+        Power::sleep();
+}
+
+/**
+ * Default delay function; busy-wait given number of milli-seconds.
  * @param[in] ms milli-seconds delay.
  */
 static void default_delay(uint32_t ms)
@@ -1294,14 +1333,15 @@ static void default_sleep(uint16_t s)
 }
 
 /**
- * Default yield function; enter sleep mode and wait for interrupt.
+ * Default yield function; enter sleep mode and wait for
+ * any interrupt.
  */
 static void default_yield()
 {
     Power::sleep();
 }
 
-/** Default setting of multi-tasking functions */
+/* Default setting of multi-tasking functions */
 void (*delay)(uint32_t ms) = default_delay;
 void (*sleep)(uint16_t s) = default_sleep;
 void (*yield)() = default_yield;
@@ -1312,21 +1352,40 @@ void (*yield)() = default_yield;
 namespace __cxxabiv1
 {
     typedef int __guard;
-    extern "C" int __cxa_guard_acquire (__guard *g)
+    
+    extern "C" int __cxa_guard_acquire(__guard *g)
     {
         UNUSED(g);
-        return (1);
+        return (0);
     }
-    extern "C" void __cxa_guard_release (__guard *g)
-    {
-        UNUSED(g);
-    }
-    extern "C" void __cxa_guard_abort (__guard *g)
+    
+    extern "C" void __cxa_guard_release(__guard *g)
     {
         UNUSED(g);
     }
-    extern "C" void __cxa_pure_virtual(void) 
+    
+    extern "C" void __cxa_guard_abort(__guard *g)
     {
+        UNUSED(g);
+    }
+    
+    extern "C" void __cxa_pure_virtual(void)
+    {
+    }
+    
+    void *__dso_handle = NULL;
+    
+    extern "C" int __cxa_atexit(void (*destructor)(void*), void* arg, void* dso)
+    {
+        UNUSED(destructor);
+        UNUSED(arg);
+        UNUSED(dso);
+        return 0;
+    }
+    
+    extern "C" void __cxa_finalize(void* f)
+    {
+        UNUSED(f);
     }
 }
 
@@ -1944,4 +2003,6 @@ int main(void)
 
 
 #endif                                                                          // end embedXcode
+
+
 

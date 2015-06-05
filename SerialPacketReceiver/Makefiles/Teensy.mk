@@ -22,7 +22,7 @@ APPLICATION_PATH := $(TEENSY_PATH)
 t001 = $(APPLICATION_PATH)/lib/teensyduino.txt
 TEENSY_VERSION = $(shell if [ -f $(t001) ] ; then cat $(t001) ; fi)
 ifneq ($(TEENSY_VERSION),1.22)
-    $(warning Teensyduino release 1.22 required.)
+    WARNING_MESSAGE = 'TEENSYDUINO RELEASE 1.22 REQUIRED'
 endif
 
 # Automatic Teensy2 or Teensy 3 selection based on build.core

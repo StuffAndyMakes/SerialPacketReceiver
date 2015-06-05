@@ -8,26 +8,35 @@
 # All rights reserved
 #
 #
-# Last update: Mar 02, 2015 release 263
+# Last update: May 11, 2015 release 288
 
 ifneq ($(shell grep 1.5 $(ARDUINO_PATH)/lib/version.txt),)
-    WARNING_MESSAGE = 'ARDUINO 1.5.x IS REPLACED BY ARDUINO 1.6.x'
+    WARNING_MESSAGE = 'ARDUINO 1.5.x IS REPLACED BY ARDUINO 1.6.1 OR 1.7.x'
 endif
 
 
+# Adafruit 1.6.x AVR specifics
 # Arduino 1.6.x AVR specifics
 # ----------------------------------
 #
-PLATFORM         := Arduino
-BUILD_CORE       := avr
-PLATFORM_TAG      = ARDUINO=$(ARDUINO_RELEASE) ARDUINO_ARCH_AVR EMBEDXCODE=$(RELEASE_NOW) ARDUINO_$(ARDUINO_NAME)
-APPLICATION_PATH := $(ARDUINO_PATH)
+ifneq ($(findstring ADAFRUIT,$(GCC_PREPROCESSOR_DEFINITIONS)),)
+    PLATFORM         := Adafruit
+    PLATFORM_TAG      = ARDUINO=$(ARDUINO_RELEASE) ADAFRUIT EMBEDXCODE=$(RELEASE_NOW)
+    APPLICATION_PATH := $(ARDUINO_PATH)
+    BOARDS_TXT       := $(APPLICATION_PATH)/hardware/adafruit/avr/boards.txt
+else
+    PLATFORM         := Arduino
+    PLATFORM_TAG      = ARDUINO=$(ARDUINO_RELEASE) ARDUINO_ARCH_AVR EMBEDXCODE=$(RELEASE_NOW) ARDUINO_$(ARDUINO_NAME)
+    APPLICATION_PATH := $(ARDUINO_PATH)
+    BOARDS_TXT       := $(APPLICATION_PATH)/hardware/arduino/avr/boards.txt
+endif
 
 APP_TOOLS_PATH   := $(APPLICATION_PATH)/hardware/tools/avr/bin
 CORE_LIB_PATH    := $(APPLICATION_PATH)/hardware/arduino/avr/cores/arduino
 APP_LIB_PATH     := $(APPLICATION_PATH)/libraries
-BOARDS_TXT       := $(APPLICATION_PATH)/hardware/arduino/avr/boards.txt
+#BOARDS_TXT       := $(APPLICATION_PATH)/hardware/arduino/avr/boards.txt
 ARDUINO_NAME      =  $(call PARSE_BOARD,$(BOARD_TAG),build.board)
+BUILD_CORE        = avr
 
 ifneq ($(findstring LITTLEROBOTFRIENDS,$(GCC_PREPROCESSOR_DEFINITIONS)),)
     BOARDS_TXT   := $(LITTLEROBOTFRIENDS_PATH)/boards.txt
@@ -140,16 +149,19 @@ AVRDUDE_COM_OPTS  = -D -p$(MCU) -C$(AVRDUDE_CONF)
 ifneq ($(BOARD_TAG1),)
 #BOARD        = $(call PARSE_BOARD,$(BOARD_TAG1),board)
 #LDSCRIPT    = $(call PARSE_BOARD,$(BOARD_TAG1),ldscript)
+# Adafruit Pro Trinket uses arduino:eightanaloginputs
     a1501         = $(call PARSE_BOARD,$(BOARD_TAG1),build.variant)
     VARIANT      = $(patsubst arduino:%,%,$(a1501))
     VARIANT_PATH = $(APPLICATION_PATH)/hardware/arduino/avr/variants/$(VARIANT)
 else
 #BOARD        = $(call PARSE_BOARD,$(BOARD_TAG),board)
 #LDSCRIPT    = $(call PARSE_BOARD,$(BOARD_TAG),ldscript)
+# Adafruit Pro Trinket uses arduino:eightanaloginputs
     a1501         = $(call PARSE_BOARD,$(BOARD_TAG),build.variant)
     VARIANT      = $(patsubst arduino:%,%,$(a1501))
     VARIANT_PATH = $(APPLICATION_PATH)/hardware/arduino/avr/variants/$(VARIANT)
 endif
+
 
 # Two locations for Arduino libraries
 #
@@ -171,8 +183,8 @@ endif
 # Another example of Arduino's quick and dirty job
 #
 ifneq ($(APP_LIBS_LIST),0)
-    a1503              = $(patsubst %,$(APP_LIB_PATH)/%/src,$(APP_LIBS_LIST))
-    a1503             += $(patsubst %,$(APP_LIB_PATH)/%/arch/$(BUILD_CORE),$(APP_LIBS_LIST))
+    a1503           = $(patsubst %,$(APP_LIB_PATH)/%/src,$(APP_LIBS_LIST))
+    a1503          += $(patsubst %,$(APP_LIB_PATH)/%/arch/$(BUILD_CORE),$(APP_LIBS_LIST))
     APP_LIBS        = $(realpath $(sort $(dir $(foreach dir,$(a1503),$(wildcard $(dir)/*.h $(dir)/*/*.h $(dir)/*/*/*.h))))) # */
 
     APP_LIB_CPP_SRC = $(realpath $(sort $(foreach dir,$(APP_LIBS),$(wildcard $(dir)/*.cpp $(dir)/*/*.cpp $(dir)/*/*/*.cpp))))
@@ -191,9 +203,11 @@ ifneq ($(APP_LIBS_LIST),0)
 endif
 
 
-MCU_FLAG_NAME  = mmcu
-EXTRA_LDFLAGS  = 
-EXTRA_CPPFLAGS = -I$(VARIANT_PATH) $(addprefix -D, $(PLATFORM_TAG)) -fno-threadsafe-statics -MMD
+MCU_FLAG_NAME    = mmcu
+#MCU              = $(call PARSE_BOARD,$(BOARD_TAG),build.mcu)
+#F_CPU            = $(call PARSE_BOARD,$(BOARD_TAG),build.f_cpu)
+EXTRA_LDFLAGS    =
+EXTRA_CPPFLAGS   = -I$(VARIANT_PATH) $(addprefix -D, $(PLATFORM_TAG)) -fno-threadsafe-statics -MMD
 
 
 # Arduino Leonardo USB PID VID

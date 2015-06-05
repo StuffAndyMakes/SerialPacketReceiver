@@ -8,7 +8,7 @@
 # All rights reserved
 #
 #
-# Last update: Apr 20, 2015 release 281
+# Last update: May 11, 2015 release 288
 
 
 
@@ -16,10 +16,9 @@
 # ----------------------------------
 #
 PLATFORM         := esp8266
-PLATFORM_TAG      = ARDUINO=10600 ARDUINO_ESP8266_ESP01 ARDUINO_ARCH_ESP8266 EMBEDXCODE=$(RELEASE_NOW) ESP8266
+PLATFORM_TAG      = ARDUINO=10601 ARDUINO_ESP8266_ESP01 ARDUINO_ARCH_ESP8266 EMBEDXCODE=$(RELEASE_NOW) ESP8266
 APPLICATION_PATH := $(ESP8266_PATH)
 
-BUILD_CORE       = avr
 BOARDS_TXT      := $(APPLICATION_PATH)/hardware/esp8266com/esp8266/boards.txt
 BUILD_CORE       = $(call PARSE_BOARD,$(BOARD_TAG),build.core)
 
@@ -93,6 +92,20 @@ FIRST_O_IN_A         = $(patsubst $(CORE_LIB_PATH)/%,$(OBJDIR)/%,$(esp001))
 #endif
 
 
+# IDE version management, based on the SDK version
+#
+$(eval SDK_VERSION = $(shell cat $(UPLOADER_PATH)/sdk/version))
+ifeq ($(SDK_VERSION),1.0.0)
+    BOARD_TAG      := generic
+    L_FLAGS         = -lgcc -lm -lhal -lphy -lnet80211 -llwip -lwpa -lmain -lpp
+    ADDRESS_BIN2    = 40000
+else
+# For ESP8266 1.6.1
+    L_FLAGS         = -lm -lc -lgcc -lhal -lphy -lnet80211 -llwip -lwpa -lmain -lpp -lsmartconfig
+    ADDRESS_BIN2    = 10000
+endif
+
+
 # Sketchbook/Libraries path
 # wildcard required for ~ management
 # ?ibraries required for libraries and Libraries
@@ -149,7 +162,7 @@ INCLUDE_PATH    += $(VARIANT_PATH)
 # Common CPPFLAGS for gcc, g++, assembler and linker
 #
 CPPFLAGS     = -g $(OPTIMISATION) $(WARNING_FLAGS) # -w
-CPPFLAGS    += -D__ets__ -DICACHE_FLASH -mlongcalls -mtext-section-literals -MMD
+CPPFLAGS    += -D__ets__ -DICACHE_FLASH -mlongcalls -mtext-section-literals -MMD # -U__STRICT_ANSI__ 
 CPPFLAGS    += -DF_CPU=$(F_CPU)
 CPPFLAGS    += $(addprefix -D, $(PLATFORM_TAG))
 CPPFLAGS    += $(addprefix -I, $(INCLUDE_PATH))

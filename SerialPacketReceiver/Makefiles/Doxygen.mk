@@ -8,7 +8,7 @@
 # All rights reserved
 #
 #
-# Last update: Jul 17, 2014 release 169
+# Last update: May 06, 2015 release 286
 
 
 
@@ -86,7 +86,7 @@ document1:
 
 document2:
 ifeq ($(GENERATE_PDF),YES)
-		@if [ -f $(TEX_PATH) ]; then Utilities/pdf.sh > Utilities/pdf.log; echo "---- PDF created ---- "; fi
+		@if [ -f $(TEX_PATH) ]; then Utilities/document.sh > Utilities/pdf.log; echo "---- PDF created ---- "; fi
 		if [ -f $(PDF_PATH) ]; then cp $(PDF_PATH) "../$(PROJECT_NAME) Reference Manual.pdf"; fi
 endif
 
@@ -112,7 +112,7 @@ document:	message_document document0 document1 document2 document3 document4
 # ~
 distribute:
 		@echo "==== Distribution ===="
-		@Utilities/dist.sh $(PROJECT_NAME)
+		@Utilities/distribute.sh $(PROJECT_NAME)
 		@echo "==== Distribution done ===="
 # ~~
 

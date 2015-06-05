@@ -8,7 +8,7 @@
 # All rights reserved
 #
 #
-# Last update: Mar 27, 2015 release 284
+# Last update: May 14, 2015 release 289
 
 
 
@@ -88,15 +88,22 @@ ifndef APPLICATIONS_PATH
     APPLICATIONS_PATH = /Applications
 endif
 
+
 # APPlications full paths
+# ----------------------------------
+#
+# Welcome dual releases 1.6.1 and 1.7 with new and fresh nightmares!
+# Arduino, ArduinoCC and ArduinoORG
 #
 ifneq ($(wildcard $(APPLICATIONS_PATH)/Arduino.app),)
     ARDUINO_APP   := $(APPLICATIONS_PATH)/Arduino.app
-else
+else ifneq ($(wildcard $(APPLICATIONS_PATH)/ArduinoCC.app),)
     ARDUINO_APP   := $(APPLICATIONS_PATH)/ArduinoCC.app
+else ifneq ($(wildcard $(APPLICATIONS_PATH)/ArduinoORG.app),)
+    ARDUINO_APP   := $(APPLICATIONS_PATH)/ArduinoORG.app
 endif
 
-# Only Arduino.ORG IDE supports Arduino Zero Pro
+# Only ArduinoORG IDE supports Arduino Zero Pro
 #
 ifneq ($(wildcard $(ARDUINO_APP)/Contents/Java/hardware/arduino/samd),)
 	ARDUINO_ORG_APP := $(ARDUINO_APP)
@@ -104,21 +111,24 @@ else
     ARDUINO_ORG_APP := $(APPLICATIONS_PATH)/ArduinoORG.app
 endif
 
-#$(info >>> ARDUINO_APP $(ARDUINO_APP))
-#$(info >>> wildcard $(wildcard $(ARDUINO_APP)/Contents/Java/hardware/arduino/samd))
-#$(info >>> ARDUINO_ORG_APP $(ARDUINO_ORG_APP))
-
+# Other IDEs
+#
 MPIDE_APP     = $(APPLICATIONS_PATH)/Mpide.app
 WIRING_APP    = $(APPLICATIONS_PATH)/Wiring.app
 ENERGIA_APP   = $(APPLICATIONS_PATH)/Energia.app
 MAPLE_APP     = $(APPLICATIONS_PATH)/MapleIDE.app
 ADAFRUIT_APP  = $(APPLICATIONS_PATH)/Adafruit.app
-SPARK_APP     = $(EMBEDXCODE_APP)/Spark
 MBED_APP      = $(EMBEDXCODE_APP)/mbed
 # ~
 YOCTO_APP     = $(EMBEDXCODE_APP)/Yocto
 ROBOTIS_APP   = $(APPLICATIONS_PATH)/ROBOTIS_OpenCM.app
 RFDUINO_APP   = $(APPLICATIONS_PATH)/RFduino.app
+
+# Particle is the new name for Spark
+SPARK_APP     = $(EMBEDXCODE_APP)/Particle
+ifeq ($(wildcard $(SPARK_APP)/*),) # */
+    SPARK_APP = $(EMBEDXCODE_APP)/Spark
+endif
 # ~~
 
 # panStamp.app path
@@ -250,7 +260,7 @@ endif
 # Arduino-related nightmares
 # ----------------------------------
 #
-# Welcome single release 1.6!
+# Get Arduino release
 # Gone Arduino 1.0, 1.5 Java 6 and 1.5 Java 7 triple release nightmare
 #
 ifneq ($(wildcard $(ARDUINO_APP)),) # */
@@ -312,12 +322,20 @@ ifneq ($(findstring LITTLEROBOTFRIENDS,$(GCC_PREPROCESSOR_DEFINITIONS)),)
     endif
 endif
 
+# Same for Microduino plug-in for Arduino 1.6.x
+#
+ifeq ($(wildcard $(MICRODUINO_APP)/Contents/Resources/Java),)
+	MICRODUINO_PATH   := $(MICRODUINO_APP)/Contents/Java
+else
+	MICRODUINO_PATH   := $(MICRODUINO_APP)/Contents/Resources/Java
+endif
+
 # Same for Teensyduino plug-in for Arduino 1.6.x
 #
 ifeq ($(wildcard $(TEENSY_APP)/Contents/Resources/Java),)
-	TEENSY_PATH   := $(TEENSY_APP)/Contents/Java
+    TEENSY_PATH   := $(TEENSY_APP)/Contents/Java
 else
-	TEENSY_PATH   := $(TEENSY_APP)/Contents/Resources/Java
+    TEENSY_PATH   := $(TEENSY_APP)/Contents/Resources/Java
 endif
 
 # Paths list for other genuine IDEs
@@ -331,15 +349,15 @@ GALILEO_PATH    = $(GALILEO_APP)/Contents/Resources/Java
 # Paths list for other plug-ins
 #
 DIGISPARK_PATH  = $(DIGISPARK_APP)/Contents/Resources/Java
-MICRODUINO_PATH = $(MICRODUINO_APP)/Contents/Resources/Java
-ADAFRUIT_PATH   = $(ADAFRUIT_APP)/Contents/Resources/Java
-PANSTAMP_PATH   = $(PANSTAMP_APP)/Contents/Resources/Java
+#MICRODUINO_PATH = $(MICRODUINO_APP)/Contents/Resources/Java
+ADAFRUIT_PATH   = $(ADAFRUIT_APP)/Contents/Java
+PANSTAMP_PATH   = $(PANSTAMP_APP)/Contents/Java
 LITTLEROBOTFRIENDS_PATH = $(LITTLEROBOTFRIENDS_APP)/Contents/Resources/Java
 ESP8266_PATH    = $(ESP8266_APP)/Contents/Java
 
 # Paths list for IDE-less platforms
 #
-SPARK_PATH      = $(EMBEDXCODE_APP)/Spark
+SPARK_PATH      = $(SPARK_APP)
 MBED_PATH       = $(EMBEDXCODE_APP)/mbed
 
 # ~
@@ -371,7 +389,7 @@ YOCTO_PATH      = $(EMBEDXCODE_APP)/Yocto
 # Variables
 #
 TARGET      := embeddedcomputing
-USER_FLAG   := false
+USER_FLAG   := true
 TEMPLATE    := NmiFVEpTZkMqAfrNXJh7pgGKXf6GJLwz
 
 # Builds directory
@@ -499,6 +517,9 @@ ifneq ($(MAKECMDGOALS),boards)
         else ifneq ($(call PARSE_FILE,$(BOARD_TAG),name,$(ADAFRUIT_PATH)/hardware/arduino/boards.txt),)
             ARDUINO_PATH := $(ADAFRUIT_PATH)
             include $(MAKEFILE_PATH)/Arduino1.mk
+        else ifneq ($(call PARSE_FILE,$(BOARD_TAG),name,$(ADAFRUIT_PATH)/hardware/adafruit/avr/boards.txt),)
+			ARDUINO_PATH := $(ADAFRUIT_PATH)
+			include $(MAKEFILE_PATH)/Arduino15avr.mk
 
         else ifneq ($(call PARSE_FILE,$(BOARD_TAG),name,$(ESP8266_PATH)/hardware/esp8266com/esp8266/boards.txt),)
             include $(MAKEFILE_PATH)/ESP8266.mk
@@ -515,6 +536,10 @@ ifneq ($(MAKECMDGOALS),boards)
             include $(MAKEFILE_PATH)/Teensy.mk
         else ifneq ($(call PARSE_FILE,$(BOARD_TAG),name,$(MICRODUINO_PATH)/hardware/Microduino/boards.txt),)
             include $(MAKEFILE_PATH)/Microduino.mk
+        else ifneq ($(call PARSE_FILE,$(BOARD_TAG1),name,$(MICRODUINO_PATH)/hardware/Microduino/avr/boards.txt),)
+            include $(MAKEFILE_PATH)/Microduino16.mk
+        else ifneq ($(call PARSE_FILE,$(BOARD_TAG),name,$(MICRODUINO_PATH)/hardware/Microduino/avr/boards.txt),)
+            include $(MAKEFILE_PATH)/Microduino16.mk
         else ifneq ($(call PARSE_FILE,$(BOARD_TAG),name,$(DIGISPARK_PATH)/hardware/digistump/avr/boards.txt),)
             include $(MAKEFILE_PATH)/Digispark.mk
 
@@ -527,7 +552,7 @@ ifneq ($(MAKECMDGOALS),boards)
             include $(MAKEFILE_PATH)/RedBearLab.mk
 
         else ifeq ($(filter SPARK,$(GCC_PREPROCESSOR_DEFINITIONS)),SPARK)
-            include $(MAKEFILE_PATH)/Spark.mk
+            include $(MAKEFILE_PATH)/Particle.mk
 
 # ~
         else ifneq ($(call PARSE_FILE,$(BOARD_TAG),name,$(LIGHTBLUE_PATH)/hardware/LightBlue-Bean/boards.txt),)
@@ -563,4 +588,5 @@ EXCLUDE_LIST   = $(addprefix %,$(EXCLUDE_NAMES))
 # Step 2
 #
 include $(MAKEFILE_PATH)/Step2.mk
+
 

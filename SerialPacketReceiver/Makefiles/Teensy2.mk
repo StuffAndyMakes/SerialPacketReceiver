@@ -8,7 +8,7 @@
 # All rights reserved
 #
 #
-# Last update: Mar 26, 2015 release 272
+# Last update: May 11, 2015 release 288
 
 
 
@@ -112,8 +112,17 @@ NM      = $(APP_TOOLS_PATH)/avr-nm
 
 MCU_FLAG_NAME   = mmcu
 MCU             = $(call PARSE_BOARD,$(BOARD_TAG),build.mcu)
-F_CPU           = 16000000L
-OPTIMISATION    = $(call PARSE_BOARD,$(BOARD_TAG),build.flags.optimize)
+
+ifndef TEENSY_F_CPU
+    TEENSY_F_CPU = 16000000
+endif
+F_CPU           = $(TEENSY_F_CPU)
+
+ifndef TEENSY_OPTIMISATION
+    TEENSY_OPTIMISATION = $(call PARSE_BOARD,$(BOARD_TAG),build.flags.optimize)
+endif
+OPTIMISATION    = $(TEENSY_OPTIMISATION)
+
 
 
 # Flags for gcc, g++ and linker

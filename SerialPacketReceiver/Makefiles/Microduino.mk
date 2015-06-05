@@ -8,7 +8,7 @@
 # All rights reserved
 #
 #
-# Last update: Jan 04, 2014 release 122
+# Last update: May 04, 2015 release 286
 
 
 
@@ -65,7 +65,7 @@ VARIANT      = $(call PARSE_BOARD,$(BOARD_TAG),build.variant)
 VARIANT_PATH = $(APPLICATION_PATH)/hardware/Microduino/variants/$(VARIANT)
 
 MCU_FLAG_NAME  = mmcu
-EXTRA_LDFLAGS  =
+EXTRA_LDFLAGS  = -lm
 EXTRA_CPPFLAGS = -MMD -I$(VARIANT_PATH) $(addprefix -D, $(PLATFORM_TAG))
 
 # Leonardo USB PID VID

@@ -10,7 +10,7 @@
 #
 # Last update: Feb 20, 2015 release 262
 
-WARNING_MESSAGE = 'ARDUINO 1.0.x IS REPLACED BY ARDUINO 1.6.x'
+WARNING_MESSAGE = 'ARDUINO 1.0.x IS REPLACED BY ARDUINO 1.6.1 OR 1.7.x'
 
 
 # Adafruit 1.0.x specifics

@@ -8,7 +8,7 @@
 # All rights reserved
 #
 #
-# Last update: Jan 24, 2015 release 260
+# Last update: May 18, 2015 release 289
 
 
 
@@ -20,7 +20,7 @@ ENERGIA_RELEASE  := $(shell tail -c2 $(APPLICATION_PATH)/lib/version.txt)
 ARDUINO_RELEASE  := $(shell head -c4 $(APPLICATION_PATH)/lib/version.txt | tail -c3)
 
 ifeq ($(shell if [[ '$(ENERGIA_RELEASE)' -ge '14' ]] ; then echo 1 ; else echo 0 ; fi ),0)
-    $(error Energia release 14 required.)
+    WARNING_MESSAGE = 'ENERGIA 14 OR LATER REQUIRED'
 endif
 
 PLATFORM         := Energia
@@ -109,6 +109,7 @@ endif
 MCU_FLAG_NAME   = mcpu
 EXTRA_LDFLAGS   = -nostartfiles -nostdlib -T$(CORE_LIB_PATH)/$(LDSCRIPT) -Wl,--gc-sections
 EXTRA_LDFLAGS  += -Wl,--entry=ResetISR -mthumb
+EXTRA_LDFLAGS  += $(CORE_LIB_PATH)/driverlib/libdriverlib.a
 
 EXTRA_CPPFLAGS  = $(addprefix -D, $(PLATFORM_TAG)) -I$(VARIANT_PATH)
 EXTRA_CPPFLAGS += -fno-exceptions -fno-rtti -mthumb $(OPTIMISATION) -MMD

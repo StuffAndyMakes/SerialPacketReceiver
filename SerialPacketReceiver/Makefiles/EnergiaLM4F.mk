@@ -8,7 +8,7 @@
 # All rights reserved
 #
 #
-# Last update: Jan 25, 2015 release 282
+# Last update: May 18, 2015 release 289
 
 
 
@@ -20,7 +20,7 @@ ENERGIA_RELEASE  := $(shell tail -c2 $(APPLICATION_PATH)/lib/version.txt)
 ARDUINO_RELEASE  := $(shell head -c4 $(APPLICATION_PATH)/lib/version.txt | tail -c3)
 
 ifeq ($(shell if [[ '$(ENERGIA_RELEASE)' -ge '13' ]] ; then echo 1 ; else echo 0 ; fi ),0)
-    $(error Energia release 13 required.)
+    WARNING_MESSAGE = 'ENERGIA 13 OR LATER REQUIRED'
 endif
 
 PLATFORM         := Energia
@@ -112,6 +112,7 @@ MCU_FLAG_NAME   = mcpu
 EXTRA_LDFLAGS   = -nostartfiles -T$(CORE_LIB_PATH)/$(LDSCRIPT) -Wl,--gc-sections -Wl,-Map=$(OBJDIR)/lm4f.map
 EXTRA_LDFLAGS  += -mthumb --entry=ResetISR
 EXTRA_LDFLAGS  += -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fsingle-precision-constant -nostdlib
+EXTRA_LDFLAGS  += $(CORE_LIB_PATH)/driverlib/libdriverlib.a
 
 EXTRA_CPPFLAGS  = $(addprefix -D, $(PLATFORM_TAG)) -I$(VARIANT_PATH)
 EXTRA_CPPFLAGS += -fno-exceptions -fno-rtti -mthumb $(OPTIMISATION)

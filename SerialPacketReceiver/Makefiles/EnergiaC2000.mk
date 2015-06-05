@@ -8,7 +8,7 @@
 # All rights reserved
 #
 #
-# Last update: Jan 24, 2015 release 260
+# Last update: May 06, 2015 release 287
 
 
 
@@ -19,8 +19,8 @@ APPLICATION_PATH := $(ENERGIA_PATH)
 ENERGIA_RELEASE  := $(shell tail -c2 $(APPLICATION_PATH)/lib/version.txt)
 ARDUINO_RELEASE  := $(shell head -c4 $(APPLICATION_PATH)/lib/version.txt | tail -c3)
 
-ifeq ($(shell if [[ '$(ENERGIA_RELEASE)' -ge '14' ]] ; then echo 1 ; else echo 0 ; fi ),0)
-    $(error Energia release 14 required.)
+ifeq ($(shell if [[ '$(ENERGIA_RELEASE)' -ge '16' ]] ; then echo 1 ; else echo 0 ; fi ),0)
+    WARNING_MESSAGE = 'ENERGIA 16 OR LATER REQUIRED'
 endif
 
 PLATFORM         := Energia
@@ -31,7 +31,13 @@ PLATFORM_TAG      = ENERGIA=$(ENERGIA_RELEASE) ARDUINO=$(ARDUINO_RELEASE) EMBEDX
 UPLOADER        = serial_loader2000
 UPLOADER_PATH   = $(APPLICATION_PATH)/hardware/c2000/serial_loader2000/macos
 UPLOADER_EXEC   = $(UPLOADER_PATH)/serial_loader2000
-UPLOADER_OPTS   = -k $(APPLICATION_PATH)/hardware/c2000/F28027_flash_kernel/Debug/flash_kernel.txt -b 38400
+ifneq ($(filter __TMS320F28027__,$(GCC_PREPROCESSOR_DEFINITIONS)),)
+    UPLOADER_OPTS   = -k $(APPLICATION_PATH)/hardware/c2000/F28027_flash_kernel/Debug/flash_kernel.txt -b 38400
+endif
+ifneq ($(filter __TMS320F28069__,$(GCC_PREPROCESSOR_DEFINITIONS)),)
+    UPLOADER_OPTS   = -k $(APPLICATION_PATH)/hardware/c2000/F28069_flash_kernel/Debug/2806_flash_kernel.txt -b 38400
+endif
+
 UPLOADER_RESET  =
 RESET_MESSAGE   = 1
 
@@ -45,8 +51,14 @@ BUILD_CORE_LIB_PATH  = $(APPLICATION_PATH)/hardware/c2000/cores/c2000
 
 #BUILD_CORE_LIBS_LIST    = $(subst .h,,$(subst $(BUILD_CORE_LIB_PATH)/,,$(wildcard $(BUILD_CORE_LIB_PATH)/*.h))) # */
 
-c101                    = $(BUILD_CORE_LIB_PATH)/f2802x_common/source
-c101                   += $(BUILD_CORE_LIB_PATH)/f2802x_headers/source
+ifneq ($(filter __TMS320F28027__,$(GCC_PREPROCESSOR_DEFINITIONS)),)
+    c101                = $(BUILD_CORE_LIB_PATH)/f2802x_common/source
+    c101               += $(BUILD_CORE_LIB_PATH)/f2802x_headers/source
+endif
+ifneq ($(filter __TMS320F28069__,$(GCC_PREPROCESSOR_DEFINITIONS)),)
+    c101                = $(BUILD_CORE_LIB_PATH)/f2806x_common/source
+    c101               += $(BUILD_CORE_LIB_PATH)/f2806x_headers/source
+endif
 
 c102                    = $(foreach dir,$(c101),$(wildcard $(dir)/*.c)) # */
 BUILD_CORE_C_SRCS       = $(filter-out %/$(EXCLUDE_LIST),$(c102))
@@ -59,7 +71,12 @@ BUILD_CORE_AS_SRCS      = $(sort $(c105))
 BUILD_CORE_OBJ_FILES    = $(BUILD_CORE_AS_SRCS:.S=.S.o) $(BUILD_CORE_C_SRCS:.c=.c.o) $(BUILD_CORE_CPP_SRCS:.cpp=.cpp.o) 
 BUILD_CORE_OBJS         = $(patsubst $(BUILD_CORE_LIB_PATH)/%,$(OBJDIR)/%,$(BUILD_CORE_OBJ_FILES))
 
-FIRST_O_IN_A            = $(filter %/F2802x_asmfuncs.S.o,$(BUILD_CORE_OBJS))
+ifneq ($(filter __TMS320F28027__,$(GCC_PREPROCESSOR_DEFINITIONS)),)
+    FIRST_O_IN_A            = $(filter %/F2802x_asmfuncs.S.o,$(BUILD_CORE_OBJS))
+endif
+ifneq ($(filter __TMS320F28069__,$(GCC_PREPROCESSOR_DEFINITIONS)),)
+    FIRST_O_IN_A            = $(filter %/F2806x_asmfuncs.S.o,$(BUILD_CORE_OBJS))
+endif
 
 
 # Sketchbook/Libraries path
@@ -118,13 +135,21 @@ endif
 
 OUT_PREPOSITION = --output_file=
 
-
 INCLUDE_PATH    := $(CORE_LIB_PATH) $(VARIANT_PATH)
 INCLUDE_PATH    += $(APPLICATION_PATH)/hardware/tools/c2000
 INCLUDE_PATH    += $(APPLICATION_PATH)/hardware/tools/c2000/include
-INCLUDE_PATH    += $(BUILD_CORE_LIB_PATH)/f2802x_common/include
-INCLUDE_PATH    += $(BUILD_CORE_LIB_PATH)/f2802x_headers/include
-INCLUDE_PATH    += $(APPLICATION_PATH)/hardware/c2000/lib
+ifneq ($(filter __TMS320F28027__,$(GCC_PREPROCESSOR_DEFINITIONS)),)
+    INCLUDE_PATH    += $(BUILD_CORE_LIB_PATH)/f2802x_common/include
+    INCLUDE_PATH    += $(BUILD_CORE_LIB_PATH)/f2802x_headers/include
+endif
+ifneq ($(filter __TMS320F28069__,$(GCC_PREPROCESSOR_DEFINITIONS)),)
+    INCLUDE_PATH    += $(BUILD_CORE_LIB_PATH)/f2806x_common/include
+    INCLUDE_PATH    += $(BUILD_CORE_LIB_PATH)/f2806x_headers/include
+endif
+# Path for Energia 16
+INCLUDE_PATH    += $(APPLICATION_PATH)/hardware/tools/c2000/lib
+# Compatibility for Energia < 16
+INCLUDE_PATH    += $(APPLICATION_PATH)/hardware/tools/lib
 
 
 # Flags for gcc, g++ and linker
@@ -166,7 +191,12 @@ LDFLAGS     += $(addprefix -i,$(INCLUDE_PATH))
 LDFLAGS     += --reread_libs --display_error_number --diag_wrap=off --entry_point=code_start --rom_model
 
 
-COMMAND_FILES = $(CORE_LIB_PATH)/f2802x_common/cmd/F28027.cmd $(CORE_LIB_PATH)/f2802x_headers/cmd/F2802x_Headers_nonBIOS.cmd
+ifneq ($(filter __TMS320F28027__,$(GCC_PREPROCESSOR_DEFINITIONS)),)
+    COMMAND_FILES = $(CORE_LIB_PATH)/f2802x_common/cmd/F28027.cmd $(CORE_LIB_PATH)/f2802x_headers/cmd/F2802x_Headers_nonBIOS.cmd
+endif
+ifneq ($(filter __TMS320F28069__,$(GCC_PREPROCESSOR_DEFINITIONS)),)
+    COMMAND_FILES = $(CORE_LIB_PATH)/f2806x_common/cmd/F28069.cmd $(CORE_LIB_PATH)/f2806x_headers/cmd/F2806x_Headers_nonBIOS.cmd
+endif
 
 
 # Specific OBJCOPYFLAGS for objcopy only

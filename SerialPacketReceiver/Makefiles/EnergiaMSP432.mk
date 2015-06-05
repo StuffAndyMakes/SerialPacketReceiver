@@ -8,7 +8,7 @@
 # All rights reserved
 #
 #
-# Last update: Apr 01, 2015 release 273
+# Last update: May 18, 2015 release 289
 
 
 
@@ -20,7 +20,7 @@ ENERGIA_RELEASE  := $(shell tail -c2 $(APPLICATION_PATH)/lib/version.txt)
 ARDUINO_RELEASE  := $(shell head -c4 $(APPLICATION_PATH)/lib/version.txt | tail -c3)
 
 ifeq ($(shell if [[ '$(ENERGIA_RELEASE)' -ge '15' ]] ; then echo 1 ; else echo 0 ; fi ),0)
-    $(error Energia release 15 required.)
+    WARNING_MESSAGE = 'ENERGIA 15 OR LATER REQUIRED'
 endif
 
 PLATFORM         := Energia
@@ -165,6 +165,7 @@ LDFLAGS      = -Wl,-T$(LDSCRIPT) $(CORE_A) $(addprefix -L, $(INCLUDE_LIBS))
 LDFLAGS     += $(OPTIMISATION) $(WARNING_FLAGS) # $(addprefix -D, $(PLATFORM_TAG))
 LDFLAGS     += @$(APPLICATION_PATH)/hardware/msp432/targets/MSP-EXP432P401R/compiler.opt
 LDFLAGS     += -nostartfiles -Wl,--no-wchar-size-warning -Wl,-static -Wl,--gc-sections
+LDFLAGS     += $(CORES_PATH)/driverlib/libdriverlib.a
 LDFLAGS     += -lstdc++ -lgcc -lc -lm -lnosys
 
 #EXTRA_LDFLAGS   = -nostartfiles -T$(CORE_LIB_PATH)/$(LDSCRIPT) -Wl,--gc-sections -Wl,-Map=$(OBJDIR)/lm4f.map

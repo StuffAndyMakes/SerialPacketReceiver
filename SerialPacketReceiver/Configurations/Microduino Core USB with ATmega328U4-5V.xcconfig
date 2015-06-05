@@ -11,12 +11,17 @@
 //  Copyright   (c) 2010-2015 http://embedxcode.weebly.com
 //  Licence     All rigths reserved
 //
-// Last update: Oct 29, 2014 release 223
+// Last update: May 11, 2015 release 288
 
 // Board identifier
 // See Boards.txt for <tag>.name=Arduino Uno (16 MHz)
 //
 BOARD_TAG  = 32u416m
+
+// For Arduino 1.5.x, if different from Arduino 1.0.x
+//
+//BOARD_TAG1 = 32u416m
+//BOARD_TAG2 = 32u416m
 
 // Port (optionnal)
 // most common are /dev/tty.usbserial*, /dev/tty.usbmodem* or /dev/tty.uart*

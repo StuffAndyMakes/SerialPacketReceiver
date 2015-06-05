@@ -8,7 +8,7 @@
 # All rights reserved
 #
 #
-# Last update: Apr 30, 2015 release 285
+# Last update: May 14, 2015 release 289
 
 
 
@@ -361,7 +361,7 @@ ifdef USE_GNU99
 endif
 
 # ~
-ifeq (false,true)
+ifeq (true,true)
     SCOPE_FLAG  := +$(PLATFORM)
 else
     SCOPE_FLAG  := -$(PLATFORM)
@@ -802,7 +802,7 @@ else ifeq ($(BUILD_CORE),msp432)
 else ifeq ($(BUILD_CORE),esp8266)
 		$(call SHOW,"7.17-LINK",$@,.)
 		$(call TRACE,"7-LINK",$@,.)
-		$(CC) $(LDFLAGS) $(OUT_PREPOSITION)$@ -Wl,--start-group $(LOCAL_OBJS) $(TARGET_A) -lgcc -lm -lhal -lphy -lnet80211 -llwip -lwpa -lmain -lpp -Wl,--end-group -LBuilds
+		$(CC) $(LDFLAGS) $(OUT_PREPOSITION)$@ -Wl,--start-group $(LOCAL_OBJS) $(TARGET_A) $(L_FLAGS) -Wl,--end-group -LBuilds
 
 else
 		$(call SHOW,"7.18-LINK",$@,.)
@@ -854,8 +854,8 @@ $(OBJDIR)/%.bin: $(OBJDIR)/%.elf
 $(OBJDIR)/%.bin2: $(OBJDIR)/%.elf
 	$(call SHOW,"8.4-COPY",$@,$<)
 	$(call TRACE,"8-COPY",$@,$<)
-	$(ESP_POST_COMPILE) -eo $< -bo Builds/$(TARGET)_00000.bin -bs .text -bs .data -bs .rodata -bc -ec -eo $< -es .irom0.text Builds/$(TARGET)_40000.bin -ec
-	cp Builds/$(TARGET)_40000.bin Builds/$(TARGET).bin
+	$(ESP_POST_COMPILE) -eo $< -bo Builds/$(TARGET)_00000.bin -bs .text -bs .data -bs .rodata -bc -ec -eo $< -es .irom0.text Builds/$(TARGET)_$(ADDRESS_BIN2).bin -ec
+	cp Builds/$(TARGET)_$(ADDRESS_BIN2).bin Builds/$(TARGET).bin
 
 $(OBJDIR)/%.eep: $(OBJDIR)/%.elf
 	$(call SHOW,"8.5-COPY",$@,$<)
@@ -1138,7 +1138,7 @@ endif
 # Release management
 # ----------------------------------
 
-RELEASE_NOW   := 285
+RELEASE_NOW   := 289
 
 EDITION_NOW   := embedXcode+ for Wiring / Arduino
 
@@ -1496,20 +1496,20 @@ else ifeq ($(UPLOADER),stlink)
 else ifeq ($(UPLOADER),BsLoader.jar)
 	$(call SHOW,"10.24-UPLOAD",$(UPLOADER))
 	$(call TRACE,"10-UPLOAD",$(UPLOADER))
-	echo 'USED_SERIAL_PORT = '$(USED_SERIAL_PORT)
+#	echo 'USED_SERIAL_PORT = '$(USED_SERIAL_PORT)
 	$(UPLOADER_EXEC) $(TARGET_HEX) $(USED_SERIAL_PORT) $(UPLOADER_OPTS)
 
 else ifeq ($(UPLOADER),esptool)
 	$(call SHOW,"10.25-UPLOAD",$(UPLOADER))
 	$(call TRACE,"10-UPLOAD",$(UPLOADER))
-	echo 'USED_SERIAL_PORT = '$(USED_SERIAL_PORT)
-	$(UPLOADER_EXEC) $(UPLOADER_OPTS) -cp $(USED_SERIAL_PORT) -ca 0x00000 -cf Builds/$(TARGET)_00000.bin -ca 0x40000 -cf Builds/$(TARGET)_40000.bin
+#	echo 'USED_SERIAL_PORT = '$(USED_SERIAL_PORT)
+	$(UPLOADER_EXEC) $(UPLOADER_OPTS) -cp $(USED_SERIAL_PORT) -ca 0x00000 -cf Builds/$(TARGET)_00000.bin -ca 0x$(ADDRESS_BIN2) -cf Builds/$(TARGET)_$(ADDRESS_BIN2).bin
 
 else ifeq ($(UPLOADER),esptool.py)
 	$(call SHOW,"10.26-UPLOAD",$(UPLOADER))
 	$(call TRACE,"10-UPLOAD",$(UPLOADER))
-	echo 'USED_SERIAL_PORT = '$(USED_SERIAL_PORT)
-	$(UPLOADER_EXEC) $(UPLOADER_OPTS) --port $(USED_SERIAL_PORT) write_flash 0x00000 Builds/$(TARGET)_00000.bin 0x40000 Builds/$(TARGET)_40000.bin
+#	echo 'USED_SERIAL_PORT = '$(USED_SERIAL_PORT)
+	$(UPLOADER_EXEC) $(UPLOADER_OPTS) --port $(USED_SERIAL_PORT) write_flash 0x00000 Builds/$(TARGET)_00000.bin 0x$(ADDRESS_BIN2) Builds/$(TARGET)_$(ADDRESS_BIN2).bin
 else
 		$(error No valid uploader)
 endif
@@ -1740,5 +1740,6 @@ end_fast:
 
 
 .PHONY:	all clean depends upload raw_upload reset serial show_boards headers size document
+
 
 

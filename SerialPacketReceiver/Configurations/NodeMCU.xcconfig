@@ -11,13 +11,12 @@
 //  Copyright   (c) 2010-2015 http://embedxcode.weebly.com
 //  Licence     All rigths reserved
 //
-// Last update: Mar 27, 2015 release 284
+// Last update: Apr 20, 2015 release 281
 
 // Board identifier
 // See Boards.txt for <tag>.name=Arduino Uno (16 MHz)
 //
-//BOARD_TAG  = generic
-BOARD_TAG  = nodemcu
+BOARD_TAG  = generic
 
 // Port (optionnal)
 // most common are /dev/tty.usbserial*, /dev/tty.usbmodem* or /dev/tty.uart*

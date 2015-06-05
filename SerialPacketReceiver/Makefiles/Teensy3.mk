@@ -8,7 +8,7 @@
 # All rights reserved
 #
 #
-# Last update: Mar 26, 2015 release 272
+# Last update: May 11, 2015 release 289
 
 
 
@@ -115,8 +115,21 @@ NM      = $(APP_TOOLS_PATH)/arm-none-eabi-nm
 
 
 LDSCRIPT        = $(call PARSE_BOARD,$(BOARD_TAG),build.linkscript)
-F_CPU           = 96000000
-OPTIMISATION    = $(call PARSE_BOARD,$(BOARD_TAG),build.flags.optimize)
+MCU             = $(call PARSE_BOARD,$(BOARD_TAG),build.mcu)
+
+ifndef TEENSY_F_CPU
+    ifeq ($(BOARD_TAG),teensyLC)
+        TEENSY_F_CPU = 48000000
+    else
+        TEENSY_F_CPU = 96000000
+    endif
+endif
+F_CPU           = $(TEENSY_F_CPU)
+
+ifndef TEENSY_OPTIMISATION
+    TEENSY_OPTIMISATION = $(call PARSE_BOARD,$(BOARD_TAG),build.flags.optimize)
+endif
+OPTIMISATION    = $(TEENSY_OPTIMISATION)
 
 
 # Flags for gcc, g++ and linker
@@ -153,7 +166,8 @@ t402         = $(subst {build.core.path},$(CORE_LIB_PATH),$(t401))
 t403         = $(subst {extra.time.local},$(shell date +%s),$(t402))
 LDFLAGS      = $(subst ", ,$(t403))
 LDFLAGS     += $(call PARSE_BOARD,$(BOARD_TAG),build.flags.cpu)
-LDFLAGS     += $(OPTIMISATION) $(call PARSE_BOARD,$(BOARD_TAG),build.flags.ldspecs)
+#LDFLAGS     += $(OPTIMISATION) $(call PARSE_BOARD,$(BOARD_TAG),build.flags.ldspecs)
+LDFLAGS     += $(OPTIMISATION) --specs=nano.specs
 LDFLAGS     += $(call PARSE_BOARD,$(BOARD_TAG),build.flags.libs)
 
 # Target
